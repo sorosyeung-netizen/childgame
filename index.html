@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小朋友益智遊戲網</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .game-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .game-card:active {
+            transform: scale(0.98);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .game-desc {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .play-btn {
+            display: inline-block;
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        footer {
+            margin-top: 40px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        @media (min-width: 600px) {
+            .game-grid {
+                flex-direction: row;
+                flex-wrap: wrap;
+                max-width: 700px;
+            }
+            .game-card {
+                width: calc(50% - 15px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 小朋友益智遊戲網 🎮</h1>
+        <p class="subtitle">快樂學習，快樂成長！</p>
+    </header>
+
+    <main class="game-grid">
+        <div class="game-card" onclick="location.href='mario.html'">
+            <div class="game-icon">🌳🍎</div>
+            <h2 class="game-title">果樹成長算術遊戲</h2>
+            <p class="game-desc">培育果樹，從萌芽到結果！<br>答對算術題目，讓樹慢慢長大</p>
+            <span class="play-btn">開始遊戲 ▶</span>
+        </div>
+
+        <div class="game-card" onclick="location.href='marvel.html'">
+            <div class="game-icon">🦸‍♂️⚔️</div>
+            <h2 class="game-title">超級英雄卡片對決</h2>
+            <p class="game-desc">與超級英雄一起戰鬥！<br>答對題目攻擊敵人，保護你的英雄</p>
+            <span class="play-btn">開始遊戲 ▶</span>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 小朋友益智遊戲網</p>
+    </footer>
+</body>
+</html>

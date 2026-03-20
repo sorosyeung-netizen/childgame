@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>果樹成長算術遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-image: url('m9.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-wrapper {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 850px;
+            position: relative;
+            border-radius: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        header {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        header h1 {
+            margin: 0;
+            color: #2e5a3a;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+        .score-board {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #1a4a2e;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+        .home-btn {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: 2px solid white;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        .home-btn:active { transform: scale(0.95); }
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .question-box {
+            background: rgba(255, 248, 220, 0.95);
+            padding: 12px 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            text-align: center;
+            border: 2px solid #8B4513;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tree-info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .current-tree-name { font-size: 1rem; font-weight: bold; color: #2e5a3a; }
+        .tree-progress-bar { width: 80px; height: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; overflow: hidden; }
+        .tree-progress-fill { height: 100%; width: 0%; background: linear-gradient(to right, #4CAF50, #8BC34A); border-radius: 5px; transition: width 0.5s ease; }
+        .stage-label { font-size: 0.75rem; color: #666; }
+        .visual-question { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; }
+        .img-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; max-width: 80px; background: rgba(240, 240, 240, 0.5); padding: 5px; border-radius: 8px; border: 2px dashed #ccc; min-height: 35px; align-items: center; }
+        .count-img { width: 22px; height: 22px; object-fit: contain; animation: popIn 0.3s; }
+        .visual-zero { font-size: 1.3rem; font-weight: bold; color: #7f8c8d; animation: popIn 0.3s; }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #operator, .equals, .question-mark { font-size: 1.3rem; font-weight: bold; color: #2c3e50; }
+        .input-area { display: flex; gap: 15px; justify-content: center; }
+        .option-btn { font-size: 1.5rem; padding: 10px 25px; background: rgba(46, 125, 50, 0.9); color: white; border: 2px solid white; border-radius: 10px; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.3); min-width: 80px; font-weight: bold; }
+        .option-btn:active { transform: scale(0.95); }
+        .garden-area { width: 100%; flex-shrink: 0; }
+        .soil-area { background: linear-gradient(to bottom, rgba(139, 69, 19, 0.4), rgba(60, 30, 10, 1)); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-height: 180px; border: 3px solid #5D4037; }
+        .tree-info-right { text-align: center; margin-bottom: 8px; }
+        .tree-name-right { font-size: 0.85rem; font-weight: bold; color: #fff; background: rgba(0,0,0,0.3); padding: 2px 10px; border-radius: 8px; margin-bottom: 3px; }
+        .stage-label-right { font-size: 0.7rem; color: #ddd; }
+        .main-tree-container { display: flex; flex-direction: column; align-items: center; position: relative; }
+        .ground { width: 60px; height: 10px; background: linear-gradient(to bottom, #5D4037, #3E2723); border-radius: 50%; margin-top: -3px; z-index: 2; }
+        .tree-trunk { width: 8px; height: 0; background: linear-gradient(to right, #5D4037, #8D6E63, #5D4037); border-radius: 2px; transition: height 0.6s ease-out; position: relative; z-index: 1; }
+        .tree-crown { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 0; }
+        .leaves { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; transition: all 0.6s ease-out; }
+        .leaf-layer { background: #4CAF50; border-radius: 50%; margin-top: -40%; opacity: 0; transform: scale(0); transition: all 0.5s ease-out; }
+        .tree-fruiting .fruits, .tree-complete .fruits { margin-top: -40px; }
+        .tree-complete .fruits { flex-direction: column; }
+        .tree-complete .fruit-row { display: flex; gap: 3px; justify-content: center; }
+        .fruits { display: flex; gap: 5px; margin-top: 5px; min-height: 20px; flex-wrap: wrap; justify-content: center; }
+        .fruit { font-size: 1.1rem; opacity: 0; transform: scale(0); transition: all 0.4s ease-out; }
+        @keyframes treeGrow { 0% { transform: scale(0.8); opacity: 0.7; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+        .tree-fruiting .leaves, .tree-complete .leaves { animation: treeGrow 0.6s ease-out, sway 3s ease-in-out infinite; }
+        .tree-complete .leaves { filter: drop-shadow(0 0 10px gold); }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 100; animation: fadeIn 0.3s; }
+        .hidden { display: none; }
+        .overlay-content { background: linear-gradient(to bottom, #fff, #e8f5e9); padding: 25px; border-radius: 20px; text-align: center; border: 5px solid #4CAF50; max-width: 300px; margin: 20px; }
+        #wrong-overlay .overlay-content h2 { color: #c62828; font-size: 2rem; }
+        .cross { font-size: 1.5rem; animation: shake 0.5s infinite; }
+        #tree-complete-overlay .overlay-content h2 { color: #FF6B00; font-size: 1.3rem; }
+        .tree-complete-display { font-size: 3rem; margin: 10px 0; animation: treeGrow 0.6s ease-out, sway 3s ease-in-out infinite; }
+        #level-complete-overlay .overlay-content h2 { color: #FFD700; font-size: 1.6rem; background: linear-gradient(to right, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .final-trees { font-size: 2rem; margin: 10px 0; display: flex; justify-content: center; gap: 8px; }
+        @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @media (min-width: 400px) {
+            .game-wrapper { max-width: 450px; border-radius: 15px; height: auto; max-height: 800px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <header>
+            <h1>🌳 果樹遊戲 🌳</h1>
+            <div class="score-board">分數: <span id="score">0</span></div>
+            <button class="home-btn" onclick="location.href='index.html'">🏠</button>
+        </header>
+        <main>
+            <div class="question-box">
+                <div class="tree-info">
+                    <div class="current-tree-name" id="current-tree-name">蘋果樹</div>
+                    <div class="tree-progress-bar"><div class="tree-progress-fill" id="tree-progress-fill"></div></div>
+                    <div class="stage-label" id="stage-label">第 1 關：萌芽</div>
+                </div>
+                <div class="visual-question">
+                    <div class="img-group" id="group1"></div>
+                    <span id="operator">+</span>
+                    <div class="img-group" id="group2"></div>
+                    <span class="equals">=</span>
+                    <span class="question-mark">?</span>
+                </div>
+                <div class="input-area">
+                    <button class="option-btn" id="option-btn-1">0</button>
+                    <button class="option-btn" id="option-btn-2">0</button>
+                </div>
+            </div>
+            <div class="garden-area">
+                <div class="soil-area">
+                    <div class="tree-info-right">
+                        <div class="tree-name-right" id="tree-name-right">蘋果樹</div>
+                        <div class="stage-label-right" id="stage-label-right">第 1 關</div>
+                    </div>
+                    <div class="main-tree-container">
+                        <div class="tree-crown" id="tree-crown"><div class="leaves" id="leaves"></div><div class="fruits" id="fruits"></div></div>
+                        <div class="tree-trunk"></div>
+                        <div class="ground"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="wrong-overlay" class="overlay hidden">
+            <div class="overlay-content"><h2>✗ 錯誤！</h2><p class="cross">再試一次！</p></div>
+        </div>
+        <div id="tree-complete-overlay" class="overlay hidden">
+            <div class="overlay-content"><h2 id="tree-complete-title">🎉 蘋果樹結果了！🎉</h2><div class="tree-complete-display" id="tree-complete-display"></div><p>即將進入下一棵樹...</p></div>
+        </div>
+        <div id="level-complete-overlay" class="overlay hidden">
+            <div class="overlay-content"><h2>🎊 恭喜全部通關！🎊</h2><div class="final-trees" id="final-trees"></div><p>你是算術達人！</p></div>
+        </div>
+    </div>
+    <script>
+        const characters = ["m3.png", "m4.png", "m5.png"];
+        const treeTypes = { apple: { name: "蘋果樹", fruit: "🍎" }, pear: { name: "梨樹", fruit: "🍐" }, durian: { name: "榴蓮樹", fruit: "🥥" }, mango: { name: "芒果樹", fruit: "🥭" } };
+        const STAGES_PER_TREE = 8;
+        const stageConfig = {
+            0: { trunk: 5, leafSize: 10, leafLayers: 1, color: "#8BC34A" },
+            1: { trunk: 10, leafSize: 18, leafLayers: 1, color: "#7CB342" },
+            2: { trunk: 18, leafSize: 28, leafLayers: 2, color: "#689F38" },
+            3: { trunk: 28, leafSize: 40, leafLayers: 2, color: "#558B2F" },
+            4: { trunk: 40, leafSize: 55, leafLayers: 3, color: "#33691E" },
+            5: { trunk: 55, leafSize: 70, leafLayers: 3, color: "#1B5E20" },
+            6: { trunk: 70, leafSize: 85, leafLayers: 4, color: "#2E7D32", fruitCount: 1 },
+            7: { trunk: 85, leafSize: 100, leafLayers: 4, color: "#1B5E20", fruitCount: 3 }
+        };
+        let gameState = { currentTreeKey: 'apple', currentStage: 0, score: 0, isProcessing: false, completedTrees: [] };
+        let currentQuestion = { num1: 0, num2: 0, operator: '+', answer: 0 };
+        let audioCtx;
+        const group1 = document.getElementById('group1'), group2 = document.getElementById('group2'), operatorEl = document.getElementById('operator');
+        const optionBtn1 = document.getElementById('option-btn-1'), optionBtn2 = document.getElementById('option-btn-2');
+        const scoreEl = document.getElementById('score'), wrongOverlay = document.getElementById('wrong-overlay');
+        const treeCompleteOverlay = document.getElementById('tree-complete-overlay'), levelCompleteOverlay = document.getElementById('level-complete-overlay');
+        function initGame() {
+            gameState = { currentTreeKey: 'apple', currentStage: 0, score: 0, isProcessing: false, completedTrees: [] };
+            updateScore(); updateTreeInfo(); updateTreeDisplay(); generateQuestion();
+            document.getElementById('tree-name-right').textContent = treeTypes.apple.name;
+            document.getElementById('stage-label-right').textContent = '第 1 關';
+            optionBtn1.addEventListener('click', () => checkAnswer(optionBtn1));
+            optionBtn2.addEventListener('click', () => checkAnswer(optionBtn2));
+            document.body.addEventListener('touchstart', () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }, { once: true });
+        }
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type === 'correct') { osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); }
+            else { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); }
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }
+        function generateQuestion() {
+            const randomChar = characters[Math.floor(Math.random() * characters.length)];
+            const isAddition = Math.random() > 0.5;
+            if (isAddition) { const n1 = Math.floor(Math.random() * 11), n2 = Math.floor(Math.random() * (11 - n1)); currentQuestion = { num1: n1, num2: n2, operator: '+', answer: n1 + n2 }; }
+            else { const n1 = Math.floor(Math.random() * 11), n2 = Math.floor(Math.random() * (n1 + 1)); currentQuestion = { num1: n1, num2: n2, operator: '-', answer: n1 - n2 }; }
+            renderImages(group1, currentQuestion.num1, randomChar); renderImages(group2, currentQuestion.num2, randomChar);
+            operatorEl.textContent = currentQuestion.operator;
+            const correct = currentQuestion.answer, wrong = correct === 0 ? 1 : 0;
+            if (Math.random() > 0.5) { optionBtn1.textContent = correct; optionBtn1.dataset.val = correct; optionBtn2.textContent = wrong; optionBtn2.dataset.val = wrong; }
+            else { optionBtn1.textContent = wrong; optionBtn1.dataset.val = wrong; optionBtn2.textContent = correct; optionBtn2.dataset.val = correct; }
+            gameState.isProcessing = false;
+        }
+        function renderImages(container, count, imgSrc) {
+            container.innerHTML = '';
+            if (count === 0) { const z = document.createElement('div'); z.className = 'visual-zero'; z.textContent = '0'; container.appendChild(z); return; }
+            for (let i = 0; i < count; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'count-img'; img.style.animationDelay = `${i * 0.05}s`; container.appendChild(img); }
+        }
+        function checkAnswer(btn) {
+            if (gameState.isProcessing) return;
+            gameState.isProcessing = true;
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            parseInt(btn.dataset.val) === currentQuestion.answer ? handleCorrect() : handleWrong();
+        }
+        function handleCorrect() {
+            playSound('correct'); gameState.score += 10; updateScore(); gameState.currentStage++;
+            updateTreeInfo(); updateTreeDisplay();
+            setTimeout(() => { gameState.currentStage >= STAGES_PER_TREE - 1 ? completeTree() : generateQuestion(); }, 600);
+        }
+        function updateTreeInfo() {
+            const t = treeTypes[gameState.currentTreeKey];
+            document.getElementById('current-tree-name').textContent = t.name;
+            document.getElementById('tree-name-right').textContent = t.name;
+            document.getElementById('stage-label').textContent = `第 ${gameState.currentStage + 1} 關：${["萌芽","幼苗","小樹","成長中","茁壯","成熟","結果","完成"][gameState.currentStage]}`;
+            document.getElementById('stage-label-right').textContent = `第 ${gameState.currentStage + 1} 關`;
+            document.getElementById('tree-progress-fill').style.width = `${(gameState.currentStage / (STAGES_PER_TREE - 1)) * 100}%`;
+        }
+        function updateTreeDisplay() {
+            const stage = stageConfig[gameState.currentStage], treeData = treeTypes[gameState.currentTreeKey];
+            const trunk = document.querySelector('.tree-trunk'), leaves = document.getElementById('leaves'), fruits = document.getElementById('fruits'), crown = document.getElementById('tree-crown');
+            trunk.style.height = `${stage.trunk}px`; crown.className = 'tree-crown';
+            if (gameState.currentStage >= 4) crown.classList.add('tree-growing');
+            if (gameState.currentStage >= 6) { crown.classList.remove('tree-growing'); crown.classList.add('tree-fruiting'); }
+            if (gameState.currentStage >= 7) { crown.classList.remove('tree-fruiting'); crown.classList.add('tree-complete'); }
+            leaves.innerHTML = '';
+            for (let i = 0; i < stage.leafLayers; i++) {
+                const leaf = document.createElement('div'); leaf.className = 'leaf-layer';
+                leaf.style.width = leaf.style.height = `${stage.leafSize * (1 - i * 0.15)}px`;
+                leaf.style.background = stage.color; leaf.style.transitionDelay = `${i * 0.1}s`;
+                setTimeout(() => { leaf.style.opacity = 1; leaf.style.transform = 'scale(1)'; }, 100 + i * 100);
+                leaves.appendChild(leaf);
+            }
+            fruits.innerHTML = '';
+            if (stage.fruitCount) {
+                if (gameState.currentStage >= 7) {
+                    const row1 = document.createElement('div'); row1.className = 'fruit-row';
+                    const f1 = document.createElement('span'); f1.className = 'fruit'; f1.textContent = treeData.fruit;
+                    setTimeout(() => { f1.style.opacity = 1; f1.style.transform = 'scale(1)'; }, 200);
+                    row1.appendChild(f1); fruits.appendChild(row1);
+                    const row2 = document.createElement('div'); row2.className = 'fruit-row';
+                    for (let i = 0; i < 2; i++) { const f = document.createElement('span'); f.className = 'fruit'; f.textContent = treeData.fruit; setTimeout(() => { f.style.opacity = 1; f.style.transform = 'scale(1)'; }, 250 + i * 150); row2.appendChild(f); }
+                    fruits.appendChild(row2);
+                } else { for (let i = 0; i < stage.fruitCount; i++) { const f = document.createElement('span'); f.className = 'fruit'; f.textContent = treeData.fruit; setTimeout(() => { f.style.opacity = 1; f.style.transform = 'scale(1)'; }, 200 + i * 150); fruits.appendChild(f); } }
+            }
+        }
+        function completeTree() {
+            const treeData = treeTypes[gameState.currentTreeKey]; gameState.completedTrees.push(gameState.currentTreeKey);
+            document.getElementById('tree-complete-title').textContent = `🎉 ${treeData.name}結果了！🎉`;
+            const d = document.getElementById('tree-complete-display'); d.innerHTML = `<div style="font-size:3rem;margin-bottom:10px;">🌳</div>`;
+            for (let i = 0; i < 3; i++) d.innerHTML += treeData.fruit + ' ';
+            treeCompleteOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                treeCompleteOverlay.classList.add('hidden');
+                const keys = ['apple', 'pear', 'durian', 'mango'], idx = keys.indexOf(gameState.currentTreeKey);
+                if (idx < keys.length - 1) { gameState.currentTreeKey = keys[idx + 1]; gameState.currentStage = 0; updateTreeInfo(); updateTreeDisplay(); generateQuestion(); }
+                else showLevelComplete();
+            }, 2500);
+        }
+        function showLevelComplete() {
+            const el = document.getElementById('final-trees'); el.innerHTML = '';
+            gameState.completedTrees.forEach(k => { const t = treeTypes[k]; el.innerHTML += `<span style="font-size:1.8rem;">🌳 ${t.fruit} </span>`; });
+            levelCompleteOverlay.classList.remove('hidden');
+            setTimeout(() => { levelCompleteOverlay.classList.add('hidden'); initGame(); }, 5000);
+        }
+        function handleWrong() { playSound('wrong'); wrongOverlay.classList.remove('hidden'); setTimeout(() => { wrongOverlay.classList.add('hidden'); generateQuestion(); }, 1500); }
+        function updateScore() { scoreEl.textContent = gameState.score; }
+        initGame();
+    </script>
+</body>
+</html>

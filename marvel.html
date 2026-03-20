@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>超級英雄卡片對決</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #E23636;
+            --secondary: #01539D;
+            --accent: #F1C40F;
+            --card-w: 120px;
+            --card-h: 170px;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: url('images/back.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #fff;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+            position: relative;
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            min-height: 100vh;
+        }
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #E23636, #FF6B6B);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        header h1 {
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin: 40px 0 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(30,30,50,0.9);
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .battle-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+        }
+        .card {
+            width: var(--card-w);
+            height: var(--card-h);
+            background: linear-gradient(145deg, rgba(40,40,70,0.95), rgba(20,20,50,0.95));
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .player-card { border-color: #4CAF50; }
+        .computer-card { border-color: #f44336; }
+        .card-image { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; margin-bottom: 5px; }
+        .card-image img { width: 100%; height: 100%; object-fit: cover; }
+        .card-name { font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; }
+        .hp-bar { width: 60px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        .hp-fill { height: 100%; background: #4CAF50; transition: width 0.3s; }
+        .hp-text { font-size: 0.7rem; }
+        .versus-area { text-align: center; }
+        .question-area {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .question-text { font-size: 1.5rem; font-weight: bold; }
+        .visual-hint { display: flex; justify-content: center; gap: 5px; margin-top: 5px; min-height: 30px; }
+        .hint-img { width: 25px; height: 25px; object-fit: contain; }
+        #speak-btn { font-size: 0.9rem; padding: 8px 16px; background: #01539D; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .options-area {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        .option-btn {
+            font-size: 1.2rem;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), #FF6B6B);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .option-btn:active { transform: scale(0.95); }
+        footer { padding: 10px; text-align: center; }
+        #reset-btn { font-size: 0.9rem; padding: 8px 20px; background: #555; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .feedback-area { font-size: 1rem; min-height: 30px; margin-top: 10px; }
+        @media (min-width: 400px) {
+            :root { --card-w: 140px; --card-h: 190px; }
+            .card-image { width: 80px; height: 80px; }
+            .question-text { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="home-btn" onclick="location.href='index.html'">🏠</button>
+        <header>
+            <h1>超級英雄卡片對決</h1>
+            <div class="score-board">
+                <span id="score-text">得分: 0</span>
+                <span id="round-text">回合: 1</span>
+            </div>
+        </header>
+        <main>
+            <div class="battle-arena">
+                <div class="card player-card" id="player-card">
+                    <div class="card-image"><img id="player-hero-img" src="images/spider.jpg" alt="Player"></div>
+                    <div class="card-name" id="player-name">Spider Man</div>
+                    <div class="hp-bar"><div class="hp-fill" id="player-hp-fill"></div></div>
+                    <span class="hp-text" id="player-hp">100</span>
+                </div>
+                <div class="versus-area">
+                    <div class="question-area">
+                        <div class="question-text" id="question-text">3 + 2 = ?</div>
+                        <div class="visual-hint" id="visual-hint"></div>
+                    </div>
+                    <button id="speak-btn">🔊 聽題目</button>
+                </div>
+                <div class="card computer-card" id="computer-card">
+                    <div class="card-image"><img id="computer-hero-img" src="images/iron.jpg" alt="Computer"></div>
+                    <div class="card-name" id="computer-name">Iron Man</div>
+                    <div class="hp-bar"><div class="hp-fill" id="computer-hp-fill"></div></div>
+                    <span class="hp-text" id="computer-hp">100</span>
+                </div>
+            </div>
+            <div class="options-area" id="options-area"></div>
+            <div class="feedback-area" id="feedback-area"></div>
+        </main>
+        <footer><button id="reset-btn">重新開始</button></footer>
+    </div>
+    <script>
+        const heroes=[{name:"Spider Man",icon:"images/spider.jpg",attack:"🕸️"},{name:"Iron Man",icon:"images/iron.jpg",attack:"⚡"},{name:"Black Panther",icon:"images/bao.jpg",attack:"🗡️"},{name:"Captain America",icon:"images/Captain.jpg",attack:"🛡️"}];
+        let score=0,round=1,q={},pHero=heroes[0],cHero=heroes[1],pHP=100,cHP=100,gameOver=false;
+        const qText=document.getElementById('question-text'),vHint=document.getElementById('visual-hint'),optArea=document.getElementById('options-area'),fBack=document.getElementById('feedback-area'),sText=document.getElementById('score-text'),rText=document.getElementById('round-text'),speak=document.getElementById('speak-btn'),reset=document.getElementById('reset-btn');
+        const pCard=document.getElementById('player-card'),cCard=document.getElementById('computer-card'),pHPFill=document.getElementById('player-hp-fill'),cHPFill=document.getElementById('computer-hp-fill'),pHPText=document.getElementById('player-hp'),cHPText=document.getElementById('computer-hp');
+        const AC=window.AudioContext||window.webkitAudioContext,aud=new AC();
+        function play(t){if(aud.state==='suspended')aud.resume();const o=aud.createOscillator(),g=aud.createGain();o.connect(g);g.connect(aud.destination);o.type=t==='c'?'sine':'sawtooth';o.frequency.value=t==='c'?500:200;g.gain.value=0.3;g.gain.exponentialRampToValueAtTime(0.01,aud.currentTime+0.3);o.start();o.stop(aud.currentTime+0.3);}
+        function speakQ(){if(!('speechSynthesis'in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(`${q.n1}${q.op==='+'?'加':'減'}${q.n2}等於幾多`);u.lang='zh-TW';u.rate=0.8;window.speechSynthesis.speak(u);}
+        function genQ(){const isA=Math.random()>0.5;if(isA){q.n1=Math.floor(Math.random()*11);q.n2=Math.floor(Math.random()*(11-q.n1));q.ans=q.n1+q.n2;q.op='+'}else{q.n1=Math.floor(Math.random()*11);q.n2=Math.floor(Math.random()*(q.n1+1));q.ans=q.n1-q.n2;q.op='-'}qText.textContent=`${q.n1} ${q.op==='+'?'+':'-'} ${q.n2} = ?`;vHint.innerHTML='';for(let i=0;i<q.n1;i++)vHint.innerHTML+=`<img class="hint-img" src="${pHero.icon}">`;if(q.op==='-')vHint.innerHTML+='<span>-</span>';for(let i=0;i<q.n2;i++)vHint.innerHTML+=`<img class="hint-img" src="${pHero.icon}">`;const ca=q.ans,wa=ca===0?1:0;const opts=[ca,wa].sort(()=>Math.random()-0.5);optArea.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='option-btn';b.textContent=o;b.onclick=()=>checkAns(o);optArea.appendChild(b)});fBack.textContent=''}
+        function checkAns(i){if(gameOver)return;if(i===q.ans){play('c');score+=10;sText.textContent=`得分: ${score}`;fBack.textContent=`✓ 正確！${pHero.attack}`;cHP=Math.max(0,cHP-20);cHPFill.style.width=cHP+'%';cHPText.textContent=cHP;cCard.classList.add('shake');setTimeout(()=>{cCard.classList.remove('shake');if(cHP<=0){gameOver=true;fBack.textContent=`🎉 勝利！`;setTimeout(genQ,2000)}else{nextR()}},500)}else{play('w');fBack.textContent='✗ 錯誤！';pHP=Math.max(0,pHP-15);pHPFill.style.width=pHP+'%';pHPText.textContent=pHP;pCard.classList.add('shake');setTimeout(()=>{pCard.classList.remove('shake');if(pHP<=0){gameOver=true;fBack.textContent='💀 失敗...';setTimeout(resetG,2000)}else{nextR()}},500)}}
+        function nextR(){round++;rText.textContent=`回合: ${round}`;if(round%3===0){const ti=Math.floor(Math.random()*heroes.length);cHero=heroes[ti];document.getElementById('computer-hero-img').src=cHero.icon;document.getElementById('computer-name').textContent=cHero.name}genQ()}
+        function resetG(){score=0;round=1;pHP=100;cHP=100;gameOver=false;sText.textContent='得分: 0';rText.textContent='回合: 1';pHPFill.style.width='100%';cHPFill.style.width='100%';pHPText.textContent=100;cHPText.textContent=100;pHero=heroes[Math.floor(Math.random()*heroes.length)];cHero=heroes[1];document.getElementById('player-hero-img').src=pHero.icon;document.getElementById('player-name').textContent=pHero.name;document.getElementById('computer-hero-img').src=cHero.icon;document.getElementById('computer-name').textContent=cHero.name;fBack.textContent='';genQ()}
+        speak.onclick=speakQ;reset.onclick=resetG;document.body.addEventListener('touchstart',()=>{if(aud.state==='suspended')aud.resume()},{once:true});resetG();
+    </script>
+</body>
+</html>
