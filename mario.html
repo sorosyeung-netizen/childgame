@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>果樹成長算術遊戲</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <header>
+            <h1>🌳 果樹成長算術遊戲 🌳</h1>
+            <div class="score-board">分數: <span id="score">0</span></div>
+            <button class="home-btn" onclick="location.href='index.html'">🏠 返回主頁</button>
+        </header>
+
+        <main>
+            <div class="question-box">
+                <div class="tree-info">
+                    <div class="current-tree-name" id="current-tree-name">蘋果樹</div>
+                    <div class="tree-progress-bar">
+                        <div class="tree-progress-fill" id="tree-progress-fill"></div>
+                    </div>
+                    <div class="stage-label" id="stage-label">第 1 關：萌芽</div>
+                </div>
+                <div class="visual-question">
+                    <div class="img-group" id="group1"></div>
+                    <span id="operator">+</span>
+                    <div class="img-group" id="group2"></div>
+                    <span class="equals">=</span>
+                    <span class="question-mark">?</span>
+                </div>
+                <div class="input-area">
+                    <button class="option-btn" id="option-btn-1">0</button>
+                    <button class="option-btn" id="option-btn-2">0</button>
+                </div>
+            </div>
+
+            <div class="garden-area">
+                <div class="soil-area">
+                    <div class="tree-info-right">
+                        <div class="tree-name-right" id="tree-name-right">蘋果樹</div>
+                        <div class="stage-label-right" id="stage-label-right">第 1 關</div>
+                    </div>
+                    <div class="main-tree-container">
+                        <div class="tree-crown" id="tree-crown">
+                            <div class="leaves" id="leaves"></div>
+                            <div class="fruits" id="fruits"></div>
+                        </div>
+                        <div class="tree-trunk"></div>
+                        <div class="ground"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="correct-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>✓ 正確！</h2>
+                <div class="tree-growth" id="tree-growth-display"></div>
+            </div>
+        </div>
+
+        <div id="wrong-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>✗ 錯誤！</h2>
+                <p class="cross">再試一次！</p>
+            </div>
+        </div>
+
+        <div id="tree-complete-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <h2 id="tree-complete-title">🎉 蘋果樹結果了！🎉</h2>
+                <div class="tree-complete-display" id="tree-complete-display"></div>
+                <p>即將進入下一棵樹...</p>
+            </div>
+        </div>
+
+        <div id="level-complete-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>🎊 恭喜全部通關！🎊</h2>
+                <div class="final-trees" id="final-trees"></div>
+                <p>你是算術達人！</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
