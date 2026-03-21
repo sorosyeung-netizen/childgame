@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>🦞 都市管道大師</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 191, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 107, 107, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 0 0 40px rgba(255, 107, 107, 0.4);
+            margin-bottom: 8px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .game-title span {
+            font-size: 2.2rem;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 500px;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-bottom: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .status-item {
+            color: #fff;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-item .icon {
+            font-size: 1.3rem;
+        }
+
+        .level-select {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 8px;
+            width: 95%;
+            max-width: 500px;
+            z-index: 1;
+        }
+
+        .level-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-btn.electricity {
+            background: linear-gradient(145deg, #ffd700, #ff9500);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .level-btn.water {
+            background: linear-gradient(145deg, #00d4ff, #0088cc);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+        }
+
+        .level-btn.gas {
+            background: linear-gradient(145deg, #ff6b6b, #cc4444);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .level-btn:hover, .level-btn:active {
+            transform: scale(1.15) translateY(-2px);
+        }
+
+        .level-btn.locked {
+            background: linear-gradient(145deg, #444, #333);
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .level-btn.active {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 4px 20px rgba(255, 255, 255, 0.3);
+            transform: scale(1.15);
+        }
+
+        .game-container {
+            position: relative;
+            width: 95%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .stars-display {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 8px;
+            z-index: 1;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+
+        .star.earned {
+            opacity: 1;
+            animation: starPop 0.5s ease;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .inventory-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            width: 95%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .inventory-slot {
+            width: 55px;
+            height: 55px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .inventory-slot:hover, .inventory-slot:active {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .inventory-slot.empty {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .inventory-slot.empty:hover {
+            transform: none;
+            border-color: transparent;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-slot .count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.7rem;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.98), rgba(20, 20, 40, 0.98));
+            color: #fff;
+            padding: 35px 50px;
+            border-radius: 28px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .message p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .message .stars-result {
+            font-size: 2.5rem;
+            margin: 15px 0;
+        }
+
+        .message button {
+            padding: 14px 35px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+        }
+
+        .btn-next {
+            background: linear-gradient(145deg, #00d4ff, #0088cc);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(0, 191, 255, 0.4);
+        }
+
+        .btn-retry {
+            background: linear-gradient(145deg, #ff6b6b, #cc4444);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-use-item {
+            background: linear-gradient(145deg, #9b59b6, #8e44ad);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
+        }
+
+        .message button:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .hint-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #9b59b6, #8e44ad);
+            border: none;
+            color: #fff;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(155, 89, 182, 0.5);
+            z-index: 50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hint-btn:active {
+            transform: scale(0.9);
+        }
+
+        .hint-btn:disabled {
+            background: linear-gradient(145deg, #444, #333);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .undo-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 95px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ff9500, #ff6b00);
+            border: none;
+            color: #fff;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(255, 149, 0, 0.5);
+            z-index: 50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .undo-btn:disabled {
+            background: linear-gradient(145deg, #444, #333);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: opacity 0.6s, transform 0.6s;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        .start-screen h1 {
+            font-size: 2.8rem;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .start-screen .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .start-screen .logo {
+            font-size: 6rem;
+            margin-bottom: 25px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+
+        .start-btn {
+            padding: 18px 60px;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 35px;
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.5);
+            font-weight: bold;
+        }
+
+        .start-btn:hover, .start-btn:active {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 20px 50px rgba(255, 107, 107, 0.6);
+        }
+
+        .moves-display {
+            font-size: 1.3rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .theme-label {
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-weight: bold;
+        }
+
+        .theme-label.electricity {
+            background: linear-gradient(145deg, #ffd700, #ff9500);
+            color: #333;
+        }
+
+        .theme-label.water {
+            background: linear-gradient(145deg, #00d4ff, #0088cc);
+            color: #fff;
+        }
+
+        .theme-label.gas {
+            background: linear-gradient(145deg, #ff6b6b, #cc4444);
+            color: #fff;
+        }
+
+        .instruction {
+            color: #888;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 8px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            width: 95%;
+            max-width: 500px;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .tutorial-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tutorial-box {
+            background: linear-gradient(145deg, rgba(40, 40, 60, 0.95), rgba(30, 30, 50, 0.95));
+            padding: 30px 40px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tutorial-box h3 {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .tutorial-box p {
+            color: #aaa;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .tutorial-box .demo {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+
+        .tutorial-box button {
+            padding: 12px 40px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(145deg, #00d4ff, #0088cc);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .parallax-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .city-building {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to top, rgba(20, 30, 50, 0.8), transparent);
+        }
+
+        .building {
+            position: absolute;
+            bottom: 0;
+            background: rgba(30, 40, 60, 0.5);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .building::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(255, 255, 200, 0.1) 0px,
+                rgba(255, 255, 200, 0.1) 3px,
+                transparent 3px,
+                transparent 8px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                transparent 0px,
+                transparent 8px,
+                rgba(255, 255, 200, 0.05) 8px,
+                rgba(255, 255, 200, 0.05) 10px
+            );
+        }
+    </style>
+</head>
+<body>
+    <div class="parallax-bg">
+        <div class="city-building" id="cityBuildings"></div>
+    </div>
+
+    <div class="start-screen" id="startScreen">
+        <div class="logo">🏙️</div>
+        <h1>都市管道大師</h1>
+        <p class="subtitle">轉動管道，讓資源從起點流到終點！</p>
+        <button class="start-btn" onclick="startGame()">開始遊戲</button>
+    </div>
+
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-box">
+            <h3>🎮 遊戲教學</h3>
+            <div class="demo">🔄</div>
+            <p><strong>點擊管道</strong>可以旋轉 90 度</p>
+            <p>讓資源從 <span style="color: #00ff00;">● 起點</span> 流到 <span style="color: #ff0000;">● 終點</span></p>
+            <p>步數越少，獲得星星越多！</p>
+            <button onclick="closeTutorial()">知道了！</button>
+        </div>
+    </div>
+
+    <h1 class="game-title">🦞 <span>都市管道大師</span></h1>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="icon">⭐</span>
+            <span id="score">0</span>
+        </div>
+        <div class="status-item">
+            <span class="icon">📊</span>
+            <span>關卡 <span id="level">1</span></span>
+            <span class="theme-label electricity" id="themeLabel">電力</span>
+        </div>
+        <div class="status-item moves-display">
+            <span class="icon">🔄</span>
+            <span id="moves">0</span>
+        </div>
+    </div>
+
+    <div class="level-select" id="levelSelect"></div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="stars-display">
+        <span class="star" id="star1">⭐</span>
+        <span class="star" id="star2">⭐</span>
+        <span class="star" id="star3">⭐</span>
+    </div>
+
+    <p class="instruction">💡 點擊管道旋轉，讓資源從 🟢 起點 流到 🔴 終點</p>
+
+    <div class="inventory-bar">
+        <div class="inventory-slot empty" id="slot1" title="提示"></div>
+        <div class="inventory-slot empty" id="slot2" title="撤銷"></div>
+        <div class="inventory-slot empty" id="slot3" title="暫停"></div>
+        <div class="inventory-slot empty" id="slot4" title="隨機"></div>
+    </div>
+
+    <button class="undo-btn" id="undoBtn" onclick="undoMove()">↩️</button>
+    <button class="hint-btn" id="hintBtn" onclick="useHint()">💡</button>
+
+    <div class="message" id="winMessage">
+        <h2>🎉 通關成功！</h2>
+        <div class="stars-result" id="starsResult">⭐⭐⭐</div>
+        <p id="winText">太棒了！你完成了這個關卡！</p>
+        <div>
+            <button class="btn-use-item" onclick="openInventory()">📦 道具箱</button>
+            <button class="btn-next" onclick="nextLevel()">下一關</button>
+            <button class="btn-retry" onclick="retryLevel()">重試</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const CELL_PADDING = 6;
+        let CELL_SIZE;
+        let PIPE_RADIUS;
+
+        const THEMES = {
+            electricity: {
+                name: '電力',
+                primary: '#ffd700',
+                secondary: '#ff9500',
+                bg: '#1a1a2e',
+                flow: '#fff59d',
+                flowGlow: 'rgba(255, 215, 0, 0.6)',
+                particle: '#ffd700',
+                icon: '⚡'
+            },
+            water: {
+                name: '水務',
+                primary: '#00d4ff',
+                secondary: '#0088cc',
+                bg: '#0a3d62',
+                flow: '#80deff',
+                flowGlow: 'rgba(0, 212, 255, 0.6)',
+                particle: '#00d4ff',
+                icon: '💧'
+            },
+            gas: {
+                name: '天然氣',
+                primary: '#ff6b6b',
+                secondary: '#cc4444',
+                bg: '#2d1b1b',
+                flow: '#ffaaaa',
+                flowGlow: 'rgba(255, 107, 107, 0.6)',
+                particle: '#ff6b6b',
+                icon: '🔥'
+            }
+        };
+
+        const PIPE_TYPES = {
+            STRAIGHT_H: 0,
+            STRAIGHT_V: 1,
+            CORNER_TL: 2,
+            CORNER_TR: 3,
+            CORNER_BL: 4,
+            CORNER_BR: 5,
+            T_TOP: 6,
+            T_RIGHT: 7,
+            T_BOTTOM: 8,
+            T_LEFT: 9,
+            CROSS: 10
+        };
+
+        let grid = [];
+        let currentTheme = 'electricity';
+        let currentLevel = 1;
+        let moves = 0;
+        let score = 0;
+        let unlockedLevels = 30;
+        let inventory = { hint: 0, undo: 0, pause: 0, random: 0 };
+        let hintsUsed = 0;
+        let startPos = { x: 0, y: 0 };
+        let endPos = { x: 0, y: 0 };
+        let moveHistory = [];
+        let particles = [];
+        let animationId = null;
+        let lastTime = 0;
+        let hasShownTutorial = false;
+        let optimalMoves = 0;
+        let flowOffset = 0;
+        let flowSpeed = 3;
+        let isWinning = false;
+        let winTimeout = null;
+
+        const LEVELS = generateLevels();
+
+        function generateLevels() {
+            const levels = [];
+            const themes = ['electricity', 'water', 'gas'];
+
+            for (let i = 0; i < 30; i++) {
+                const theme = themes[i % 3];
+                let gridSize = 4;
+                if (i >= 8 && i < 16) gridSize = 5;
+                else if (i >= 16 && i < 24) gridSize = 5;
+                else if (i >= 24) gridSize = 6;
+
+                levels.push({
+                    id: i + 1,
+                    theme: theme,
+                    gridSize: gridSize,
+                    optimalMoves: Math.floor(gridSize * 1.5)
+                });
+            }
+
+            return levels;
+        }
+
+        function generateCityBuildings() {
+            const container = document.getElementById('cityBuildings');
+            container.innerHTML = '';
+            const buildingCount = 15;
+
+            for (let i = 0; i < buildingCount; i++) {
+                const building = document.createElement('div');
+                building.className = 'building';
+                const width = 30 + Math.random() * 60;
+                const height = 50 + Math.random() * 150;
+                building.style.width = width + 'px';
+                building.style.height = height + 'px';
+                building.style.left = (i * (100 / buildingCount)) + '%';
+                building.style.opacity = 0.3 + Math.random() * 0.3;
+                container.appendChild(building);
+            }
+        }
+
+        generateCityBuildings();
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = size * window.devicePixelRatio;
+            canvas.height = size * window.devicePixelRatio;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            const level = LEVELS[currentLevel - 1];
+            const effectiveGridSize = level ? level.gridSize : 4;
+            CELL_SIZE = size / effectiveGridSize;
+            PIPE_RADIUS = (CELL_SIZE - CELL_PADDING * 2) / 2;
+
+            render();
+        }
+
+        function initGrid() {
+            resetWinState();
+            const level = LEVELS[currentLevel - 1];
+            const gridSize = level.gridSize;
+            grid = [];
+            moveHistory = [];
+            particles = [];
+
+            startPos = { x: 0, y: Math.floor(gridSize / 2) };
+            endPos = { x: gridSize - 1, y: Math.floor(gridSize / 2) };
+
+            const solutionPath = generateSolutionPath(gridSize);
+            optimalMoves = solutionPath.length;
+
+            for (let y = 0; y < gridSize; y++) {
+                grid[y] = [];
+                for (let x = 0; x < gridSize; x++) {
+                    grid[y][x] = {
+                        type: PIPE_TYPES.STRAIGHT_H,
+                        rotation: 0,
+                        connected: false,
+                        isPath: false,
+                        targetRotation: 0
+                    };
+                }
+            }
+
+            for (let i = 0; i < solutionPath.length; i++) {
+                const pos = solutionPath[i];
+                let prevDir = i > 0 ? getDirection(solutionPath[i-1], pos) : 1;
+                let nextDir = i < solutionPath.length - 1 ? getDirection(pos, solutionPath[i+1]) : 1;
+
+                if (i === 0) prevDir = 3;
+                if (i === solutionPath.length - 1) nextDir = 1;
+
+                const pipeInfo = getPipeForConnections(prevDir, nextDir);
+                grid[pos.y][pos.x].type = pipeInfo.type;
+                grid[pos.y][pos.x].rotation = pipeInfo.rotation;
+                grid[pos.y][pos.x].isPath = true;
+            }
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (!grid[y][x].isPath) {
+                        const randomType = getRandomPipeType();
+                        grid[y][x].type = randomType.type;
+                        grid[y][x].rotation = randomType.rotation;
+                    } else {
+                        grid[y][x].rotation = (grid[y][x].rotation + Math.floor(Math.random() * 4) * 90) % 360;
+                    }
+                    grid[y][x].targetRotation = grid[y][x].rotation;
+                }
+            }
+
+            checkAllConnections();
+        }
+
+        function generateSolutionPath(gridSize) {
+            const path = [];
+            let x = 0;
+            let y = Math.floor(gridSize / 2);
+            path.push({ x, y });
+
+            const visited = new Set();
+            visited.add(`${x},${y}`);
+
+            while (x < gridSize - 1) {
+                const moves = [];
+
+                if (x + 1 < gridSize && !visited.has(`${x+1},${y}`)) {
+                    moves.push({ x: x + 1, y: y });
+                }
+                if (y > 0 && !visited.has(`${x},${y-1}`)) {
+                    moves.push({ x: x, y: y - 1 });
+                }
+                if (y < gridSize - 1 && !visited.has(`${x},${y+1}`)) {
+                    moves.push({ x: x, y: y + 1 });
+                }
+
+                if (moves.length === 0) {
+                    x++;
+                    if (x < gridSize) {
+                        path.push({ x, y });
+                        visited.add(`${x},${y}`);
+                    }
+                } else {
+                    const next = moves[Math.floor(Math.random() * moves.length)];
+                    x = next.x;
+                    y = next.y;
+                    path.push({ x, y });
+                    visited.add(`${x},${y}`);
+                }
+            }
+
+            return path;
+        }
+
+        function getDirection(from, to) {
+            if (to.x > from.x) return 1;
+            if (to.x < from.x) return 3;
+            if (to.y > from.y) return 2;
+            if (to.y < from.y) return 0;
+            return 1;
+        }
+
+        function getPipeForConnections(dir1, dir2) {
+            const dirs = [dir1, dir2].sort((a, b) => a - b);
+
+            if (dirs[0] === 0 && dirs[1] === 2) {
+                return { type: PIPE_TYPES.STRAIGHT_V, rotation: 0 };
+            }
+            if (dirs[0] === 1 && dirs[1] === 3) {
+                return { type: PIPE_TYPES.STRAIGHT_H, rotation: 0 };
+            }
+            if (dirs[0] === 0 && dirs[1] === 1) {
+                return { type: PIPE_TYPES.CORNER_TR, rotation: 0 };
+            }
+            if (dirs[0] === 0 && dirs[1] === 3) {
+                return { type: PIPE_TYPES.CORNER_TL, rotation: 0 };
+            }
+            if (dirs[0] === 1 && dirs[1] === 2) {
+                return { type: PIPE_TYPES.CORNER_BR, rotation: 0 };
+            }
+            if (dirs[0] === 2 && dirs[1] === 3) {
+                return { type: PIPE_TYPES.CORNER_BL, rotation: 0 };
+            }
+
+            return { type: PIPE_TYPES.CROSS, rotation: 0 };
+        }
+
+        function getRandomPipeType() {
+            const types = [
+                { type: PIPE_TYPES.STRAIGHT_H, rotation: 0 },
+                { type: PIPE_TYPES.STRAIGHT_V, rotation: 0 },
+                { type: PIPE_TYPES.CORNER_TL, rotation: 0 },
+                { type: PIPE_TYPES.CORNER_TR, rotation: 0 },
+                { type: PIPE_TYPES.CORNER_BL, rotation: 0 },
+                { type: PIPE_TYPES.CORNER_BR, rotation: 0 }
+            ];
+            const t = types[Math.floor(Math.random() * types.length)];
+            return { type: t.type, rotation: Math.floor(Math.random() * 4) * 90 };
+        }
+
+        function getConnections(pipe) {
+            const baseConnections = getBaseConnections(pipe.type);
+            const rotationSteps = pipe.rotation / 90;
+            return baseConnections.map(dir => (dir + rotationSteps) % 4);
+        }
+
+        function getBaseConnections(type) {
+            switch (type) {
+                case PIPE_TYPES.STRAIGHT_H: return [1, 3];
+                case PIPE_TYPES.STRAIGHT_V: return [0, 2];
+                case PIPE_TYPES.CORNER_TL: return [3, 2];
+                case PIPE_TYPES.CORNER_TR: return [1, 2];
+                case PIPE_TYPES.CORNER_BL: return [3, 0];
+                case PIPE_TYPES.CORNER_BR: return [1, 0];
+                case PIPE_TYPES.T_TOP: return [1, 2, 3];
+                case PIPE_TYPES.T_RIGHT: return [0, 2, 3];
+                case PIPE_TYPES.T_BOTTOM: return [0, 1, 3];
+                case PIPE_TYPES.T_LEFT: return [0, 1, 2];
+                case PIPE_TYPES.CROSS: return [0, 1, 2, 3];
+                default: return [];
+            }
+        }
+
+        function checkAllConnections() {
+            const level = LEVELS[currentLevel - 1];
+            const gridSize = level.gridSize;
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    grid[y][x].connected = false;
+                }
+            }
+
+            const startPipe = grid[startPos.y][startPos.x];
+            const startConnections = getConnections(startPipe);
+            
+            if (!startConnections.includes(3)) {
+                updateParticles();
+                return;
+            }
+
+            floodFill(startPos.x, startPos.y, gridSize, 3);
+
+            updateParticles();
+
+            const endPipe = grid[endPos.y][endPos.x];
+            const endConnections = getConnections(endPipe);
+            
+            if (grid[endPos.y][endPos.x].connected && endConnections.includes(1) && !isWinning) {
+                isWinning = true;
+                winTimeout = setTimeout(() => {
+                    showWinMessage();
+                    winTimeout = null;
+                }, 5000);
+            }
+        }
+
+        function floodFill(x, y, gridSize, fromDir) {
+            if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
+            if (grid[y][x].connected) return;
+
+            const connections = getConnections(grid[y][x]);
+            if (!connections.includes(fromDir)) return;
+
+            grid[y][x].connected = true;
+
+            const directions = [
+                { dx: 0, dy: -1, from: 0, to: 2 },
+                { dx: 1, dy: 0, from: 1, to: 3 },
+                { dx: 0, dy: 1, from: 2, to: 0 },
+                { dx: -1, dy: 0, from: 3, to: 1 }
+            ];
+
+            for (const conn of connections) {
+                if (conn === fromDir) continue;
+                const dir = directions[conn];
+                const nx = x + dir.dx;
+                const ny = y + dir.dy;
+                
+                if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+                    const neighborConnections = getConnections(grid[ny][nx]);
+                    if (neighborConnections.includes(dir.to)) {
+                        floodFill(nx, ny, gridSize, dir.to);
+                    }
+                }
+            }
+        }
+
+        function updateParticles() {
+            const level = LEVELS[currentLevel - 1];
+            const theme = THEMES[level.theme];
+            
+            particles = particles.filter(p => p.life > 0);
+
+            for (let y = 0; y < level.gridSize; y++) {
+                for (let x = 0; x < level.gridSize; x++) {
+                    if (grid[y][x].connected && Math.random() < 0.1) {
+                        const cx = x * CELL_SIZE + CELL_SIZE / 2;
+                        const cy = y * CELL_SIZE + CELL_SIZE / 2;
+                        particles.push({
+                            x: cx + (Math.random() - 0.5) * PIPE_RADIUS,
+                            y: cy + (Math.random() - 0.5) * PIPE_RADIUS,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            life: 30 + Math.random() * 20,
+                            size: 2 + Math.random() * 3,
+                            color: theme.particle
+                        });
+                    }
+                }
+            }
+        }
+
+        function handleClick(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+            const clientY = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+            const canvasX = clientX - rect.left;
+            const canvasY = clientY - rect.top;
+
+            const level = LEVELS[currentLevel - 1];
+            const gridSize = level.gridSize;
+            const cellX = Math.floor(canvasX / (rect.width / gridSize));
+            const cellY = Math.floor(canvasY / (rect.height / gridSize));
+
+            if (cellX >= 0 && cellX < gridSize && cellY >= 0 && cellY < gridSize) {
+                moveHistory.push({
+                    x: cellX,
+                    y: cellY,
+                    oldRotation: grid[cellY][cellX].rotation
+                });
+
+                grid[cellY][cellX].rotation = (grid[cellY][cellX].rotation + 90) % 360;
+                grid[cellY][cellX].targetRotation = grid[cellY][cellX].rotation;
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                checkAllConnections();
+                render();
+                playSound('rotate');
+
+                document.getElementById('undoBtn').disabled = false;
+            }
+        }
+
+        canvas.addEventListener('click', handleClick);
+        canvas.addEventListener('touchstart', handleClick, { passive: false });
+
+        function undoMove() {
+            if (moveHistory.length === 0) return;
+
+            const lastMove = moveHistory.pop();
+            grid[lastMove.y][lastMove.x].rotation = lastMove.oldRotation;
+            grid[lastMove.y][lastMove.x].targetRotation = lastMove.oldRotation;
+            moves++;
+            document.getElementById('moves').textContent = moves;
+            checkAllConnections();
+            render();
+            playSound('rotate');
+
+            if (moveHistory.length === 0) {
+                document.getElementById('undoBtn').disabled = true;
+            }
+        }
+
+        function render() {
+            const level = LEVELS[currentLevel - 1];
+            const gridSize = level.gridSize;
+            const theme = THEMES[level.theme];
+            const canvasSize = canvas.width / window.devicePixelRatio;
+
+            CELL_SIZE = canvasSize / gridSize;
+            PIPE_RADIUS = (CELL_SIZE - CELL_PADDING * 2) / 2;
+
+            ctx.fillStyle = theme.bg;
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+            drawGrid(theme, gridSize);
+
+            drawStartEnd(theme, gridSize);
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    drawCell(x, y, grid[y][x], theme);
+                }
+            }
+
+            drawParticles(theme);
+        }
+
+        function drawGrid(theme, gridSize) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= gridSize; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, gridSize * CELL_SIZE);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(gridSize * CELL_SIZE, i * CELL_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function drawStartEnd(theme, gridSize) {
+            const startCx = startPos.x * CELL_SIZE + CELL_SIZE / 2;
+            const startCy = startPos.y * CELL_SIZE + CELL_SIZE / 2;
+            const endCx = endPos.x * CELL_SIZE + CELL_SIZE / 2;
+            const endCy = endPos.y * CELL_SIZE + CELL_SIZE / 2;
+
+            ctx.save();
+
+            const startGradient = ctx.createRadialGradient(
+                startCx - CELL_SIZE * 0.15, startCy - CELL_SIZE * 0.15, 0,
+                startCx, startCy, CELL_SIZE * 0.5
+            );
+            startGradient.addColorStop(0, '#00ff00');
+            startGradient.addColorStop(0.4, '#00dd00');
+            startGradient.addColorStop(0.8, '#00aa00');
+            startGradient.addColorStop(1, '#006600');
+            
+            ctx.fillStyle = startGradient;
+            ctx.shadowColor = '#00ff00';
+            ctx.shadowBlur = 40;
+            ctx.beginPath();
+            ctx.roundRect(
+                startCx - CELL_SIZE * 0.42,
+                startCy - CELL_SIZE * 0.42,
+                CELL_SIZE * 0.84,
+                CELL_SIZE * 0.84,
+                12
+            );
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = `bold ${CELL_SIZE * 0.35}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowBlur = 0;
+            ctx.fillText('S', startCx, startCy);
+
+            const endGradient = ctx.createRadialGradient(
+                endCx - CELL_SIZE * 0.15, endCy - CELL_SIZE * 0.15, 0,
+                endCx, endCy, CELL_SIZE * 0.5
+            );
+            endGradient.addColorStop(0, '#ff0000');
+            endGradient.addColorStop(0.4, '#ff3333');
+            endGradient.addColorStop(0.8, '#cc0000');
+            endGradient.addColorStop(1, '#990000');
+            
+            ctx.fillStyle = endGradient;
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 40;
+            ctx.beginPath();
+            ctx.roundRect(
+                endCx - CELL_SIZE * 0.42,
+                endCy - CELL_SIZE * 0.42,
+                CELL_SIZE * 0.84,
+                CELL_SIZE * 0.84,
+                12
+            );
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.shadowBlur = 0;
+            ctx.fillText('E', endCx, endCy);
+
+            ctx.restore();
+        }
+
+        function drawCell(x, y, pipe, theme) {
+            const cx = x * CELL_SIZE + CELL_SIZE / 2;
+            const cy = y * CELL_SIZE + CELL_SIZE / 2;
+
+            ctx.save();
+
+            ctx.fillStyle = 'rgba(20, 25, 35, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(cx - PIPE_RADIUS, cy - PIPE_RADIUS, PIPE_RADIUS * 2, PIPE_RADIUS * 2, 6);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(60, 70, 90, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.translate(cx, cy);
+            ctx.rotate(pipe.rotation * Math.PI / 180);
+
+            drawRealisticPipe(pipe.type, theme, pipe.connected);
+
+            ctx.restore();
+        }
+
+        function drawRealisticPipe(type, theme, connected) {
+            const len = PIPE_RADIUS * 0.75;
+            const pipeWidth = PIPE_RADIUS * 0.4;
+            const innerWidth = pipeWidth * 0.6;
+
+            const baseColor = connected ? theme.primary : '#4a5568';
+            const lightColor = connected ? theme.flow : '#718096';
+            const darkColor = connected ? darkenColor(theme.primary, 30) : '#2d3748';
+            const innerColor = connected ? darkenColor(theme.primary, 50) : '#1a202c';
+
+            ctx.lineCap = 'butt';
+            ctx.lineJoin = 'miter';
+
+            function drawStraightPipe(dx, dy, length) {
+                const isHorizontal = dx !== 0;
+                const px = dx > 0 ? len : (dx < 0 ? -len : 0);
+                const py = dy > 0 ? len : (dy < 0 ? -len : 0);
+
+                ctx.save();
+                
+                if (isHorizontal) {
+                    const startX = dx > 0 ? 0 : px;
+                    const endX = dx > 0 ? px : 0;
+                    
+                    ctx.fillStyle = darkColor;
+                    ctx.fillRect(startX, -pipeWidth/2, endX - startX, pipeWidth);
+                    
+                    const gradient = ctx.createLinearGradient(0, -pipeWidth/2, 0, pipeWidth/2);
+                    gradient.addColorStop(0, lightColor);
+                    gradient.addColorStop(0.3, baseColor);
+                    gradient.addColorStop(0.7, baseColor);
+                    gradient.addColorStop(1, darkColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(startX, -pipeWidth/2, endX - startX, pipeWidth);
+                    
+                    ctx.fillStyle = innerColor;
+                    ctx.fillRect(startX, -innerWidth/2, endX - startX, innerWidth);
+                    
+                    if (connected) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(startX, -innerWidth/2, endX - startX, innerWidth);
+                        ctx.clip();
+                        
+                        const flowGradient = ctx.createLinearGradient(startX, 0, endX, 0);
+                        const segmentWidth = 20;
+                        const positions = [];
+                        for (let i = startX - segmentWidth; i < endX + segmentWidth; i += segmentWidth) {
+                            positions.push(i);
+                        }
+                        
+                        ctx.globalAlpha = 0.6;
+                        for (let i = 0; i < positions.length; i++) {
+                            const x = positions[i] + (flowOffset % segmentWidth);
+                            const grad = ctx.createLinearGradient(x, -innerWidth/2, x + segmentWidth/2, innerWidth/2);
+                            grad.addColorStop(0, 'transparent');
+                            grad.addColorStop(0.3, theme.flow);
+                            grad.addColorStop(0.5, '#ffffff');
+                            grad.addColorStop(0.7, theme.flow);
+                            grad.addColorStop(1, 'transparent');
+                            ctx.fillStyle = grad;
+                            ctx.fillRect(x, -innerWidth/2 + 1, segmentWidth/2, innerWidth - 2);
+                        }
+                        ctx.globalAlpha = 1;
+                        ctx.restore();
+                        
+                        ctx.fillStyle = theme.flow;
+                        ctx.globalAlpha = 0.15;
+                        ctx.fillRect(startX, -innerWidth/2 + 1, endX - startX, innerWidth * 0.35);
+                        ctx.globalAlpha = 1;
+                    }
+                } else {
+                    const startY = dy > 0 ? 0 : py;
+                    const endY = dy > 0 ? py : 0;
+                    
+                    ctx.fillStyle = darkColor;
+                    ctx.fillRect(-pipeWidth/2, startY, pipeWidth, endY - startY);
+                    
+                    const gradient = ctx.createLinearGradient(-pipeWidth/2, 0, pipeWidth/2, 0);
+                    gradient.addColorStop(0, lightColor);
+                    gradient.addColorStop(0.3, baseColor);
+                    gradient.addColorStop(0.7, baseColor);
+                    gradient.addColorStop(1, darkColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(-pipeWidth/2, startY, pipeWidth, endY - startY);
+                    
+                    ctx.fillStyle = innerColor;
+                    ctx.fillRect(-innerWidth/2, startY, innerWidth, endY - startY);
+                    
+                    if (connected) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(-innerWidth/2, startY, innerWidth, endY - startY);
+                        ctx.clip();
+                        
+                        ctx.globalAlpha = 0.6;
+                        const segmentWidth = 20;
+                        for (let i = startY - segmentWidth; i < endY + segmentWidth; i += segmentWidth) {
+                            const y = i + (flowOffset % segmentWidth);
+                            const grad = ctx.createLinearGradient(-innerWidth/2, y, innerWidth/2, y + segmentWidth/2);
+                            grad.addColorStop(0, 'transparent');
+                            grad.addColorStop(0.3, theme.flow);
+                            grad.addColorStop(0.5, '#ffffff');
+                            grad.addColorStop(0.7, theme.flow);
+                            grad.addColorStop(1, 'transparent');
+                            ctx.fillStyle = grad;
+                            ctx.fillRect(-innerWidth/2 + 1, y, innerWidth - 2, segmentWidth/2);
+                        }
+                        ctx.globalAlpha = 1;
+                        ctx.restore();
+                        
+                        ctx.fillStyle = theme.flow;
+                        ctx.globalAlpha = 0.15;
+                        ctx.fillRect(-innerWidth/2 + 1, startY, innerWidth * 0.35, endY - startY);
+                        ctx.globalAlpha = 1;
+                    }
+                }
+
+                ctx.strokeStyle = darkColor;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(
+                    isHorizontal ? (dx > 0 ? 0 : px) : -pipeWidth/2,
+                    isHorizontal ? -pipeWidth/2 : (dy > 0 ? 0 : py),
+                    isHorizontal ? len : pipeWidth,
+                    isHorizontal ? pipeWidth : len
+                );
+
+                ctx.restore();
+            }
+
+            function drawCurvedPipe(dir1, dir2) {
+                ctx.save();
+
+                let angle1, angle2;
+                let cx1 = 0, cy1 = 0;
+
+                if ((dir1 === 3 && dir2 === 2) || (dir1 === 2 && dir2 === 3)) {
+                    angle1 = Math.PI;
+                    angle2 = Math.PI / 2;
+                    cx1 = -len;
+                    cy1 = len;
+                } else if ((dir1 === 1 && dir2 === 2) || (dir1 === 2 && dir2 === 1)) {
+                    angle1 = 0;
+                    angle2 = Math.PI / 2;
+                    cx1 = len;
+                    cy1 = len;
+                } else if ((dir1 === 3 && dir2 === 0) || (dir1 === 0 && dir2 === 3)) {
+                    angle1 = Math.PI;
+                    angle2 = -Math.PI / 2;
+                    cx1 = -len;
+                    cy1 = -len;
+                } else if ((dir1 === 1 && dir2 === 0) || (dir1 === 0 && dir2 === 1)) {
+                    angle1 = 0;
+                    angle2 = -Math.PI / 2;
+                    cx1 = len;
+                    cy1 = -len;
+                }
+
+                ctx.beginPath();
+                ctx.arc(cx1, cy1, pipeWidth/2, angle1, angle2, angle1 > angle2);
+                ctx.strokeStyle = darkColor;
+                ctx.lineWidth = pipeWidth + 2;
+                ctx.stroke();
+
+                const gradient = ctx.createRadialGradient(cx1, cy1, innerWidth/2, cx1, cy1, pipeWidth/2);
+                gradient.addColorStop(0, innerColor);
+                gradient.addColorStop(0.5, baseColor);
+                gradient.addColorStop(1, lightColor);
+                
+                ctx.beginPath();
+                ctx.arc(cx1, cy1, pipeWidth/2, angle1, angle2, angle1 > angle2);
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = pipeWidth;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx1, cy1, innerWidth/2, angle1, angle2, angle1 > angle2);
+                ctx.strokeStyle = innerColor;
+                ctx.lineWidth = innerWidth;
+                ctx.stroke();
+
+                if (connected) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx1, cy1, innerWidth/2 - 1, angle1, angle2, angle1 > angle2);
+                    ctx.strokeStyle = theme.flow;
+                    ctx.globalAlpha = 0.5;
+                    ctx.lineWidth = innerWidth * 0.5;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                    
+                    const arcLength = Math.abs(angle1 - angle2) * (innerWidth/2);
+                    const segments = 8;
+                    const segmentAngle = Math.abs(angle1 - angle2) / segments;
+                    const flowAngle = (flowOffset / 40) * Math.abs(angle1 - angle2);
+                    
+                    ctx.globalAlpha = 0.7;
+                    for (let i = 0; i < segments; i++) {
+                        const startA = angle1 + (angle1 > angle2 ? -1 : 1) * ((i * segmentAngle + flowAngle) % Math.abs(angle1 - angle2));
+                        const endA = startA + (angle1 > angle2 ? -1 : 1) * segmentAngle * 0.5;
+                        
+                        const grad = ctx.createRadialGradient(cx1, cy1, innerWidth/4, cx1, cy1, innerWidth/2);
+                        grad.addColorStop(0, 'transparent');
+                        grad.addColorStop(0.3, theme.flow);
+                        grad.addColorStop(0.5, '#ffffff');
+                        grad.addColorStop(0.7, theme.flow);
+                        grad.addColorStop(1, 'transparent');
+                        
+                        ctx.beginPath();
+                        ctx.arc(cx1, cy1, innerWidth/2 - 2, startA, endA, angle1 > angle2);
+                        ctx.strokeStyle = grad;
+                        ctx.lineWidth = innerWidth - 4;
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
+                }
+
+                drawStraightPipe(dir1 === 1 ? 1 : (dir1 === 3 ? -1 : 0), dir1 === 0 ? -1 : (dir1 === 2 ? 1 : 0), len);
+                drawStraightPipe(dir2 === 1 ? 1 : (dir2 === 3 ? -1 : 0), dir2 === 0 ? -1 : (dir2 === 2 ? 1 : 0), len);
+
+                ctx.restore();
+            }
+
+            function drawJoint() {
+                ctx.beginPath();
+                ctx.arc(0, 0, pipeWidth/2 + 2, 0, Math.PI * 2);
+                ctx.fillStyle = darkColor;
+                ctx.fill();
+
+                const gradient = ctx.createRadialGradient(-pipeWidth/4, -pipeWidth/4, 0, 0, 0, pipeWidth/2);
+                gradient.addColorStop(0, lightColor);
+                gradient.addColorStop(0.5, baseColor);
+                gradient.addColorStop(1, darkColor);
+                ctx.beginPath();
+                ctx.arc(0, 0, pipeWidth/2, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(0, 0, innerWidth/2, 0, Math.PI * 2);
+                ctx.fillStyle = innerColor;
+                ctx.fill();
+
+                if (connected) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, innerWidth/3, 0, Math.PI * 2);
+                    ctx.fillStyle = theme.flow;
+                    ctx.globalAlpha = 0.5;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(0, 0, innerWidth/2 - 1, 0, Math.PI * 2);
+                    ctx.clip();
+                    
+                    const numRays = 6;
+                    const rayAngle = (Math.PI * 2) / numRays;
+                    const rotation = (flowOffset / 40) * Math.PI * 2;
+                    
+                    ctx.globalAlpha = 0.6;
+                    for (let i = 0; i < numRays; i++) {
+                        const angle = rotation + i * rayAngle;
+                        const grad = ctx.createLinearGradient(
+                            0, 0,
+                            Math.cos(angle) * innerWidth/2,
+                            Math.sin(angle) * innerWidth/2
+                        );
+                        grad.addColorStop(0, 'transparent');
+                        grad.addColorStop(0.3, theme.flow);
+                        grad.addColorStop(0.5, '#ffffff');
+                        grad.addColorStop(0.7, theme.flow);
+                        grad.addColorStop(1, 'transparent');
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(
+                            Math.cos(angle - 0.2) * innerWidth/2,
+                            Math.sin(angle - 0.2) * innerWidth/2
+                        );
+                        ctx.lineTo(
+                            Math.cos(angle + 0.2) * innerWidth/2,
+                            Math.sin(angle + 0.2) * innerWidth/2
+                        );
+                        ctx.closePath();
+                        ctx.fillStyle = grad;
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
+                }
+            }
+
+            switch (type) {
+                case PIPE_TYPES.STRAIGHT_H:
+                    drawStraightPipe(1, 0, len);
+                    drawStraightPipe(-1, 0, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.STRAIGHT_V:
+                    drawStraightPipe(0, 1, len);
+                    drawStraightPipe(0, -1, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.CORNER_TL:
+                    drawCurvedPipe(3, 2);
+                    break;
+
+                case PIPE_TYPES.CORNER_TR:
+                    drawCurvedPipe(1, 2);
+                    break;
+
+                case PIPE_TYPES.CORNER_BL:
+                    drawCurvedPipe(3, 0);
+                    break;
+
+                case PIPE_TYPES.CORNER_BR:
+                    drawCurvedPipe(1, 0);
+                    break;
+
+                case PIPE_TYPES.T_TOP:
+                    drawStraightPipe(1, 0, len);
+                    drawStraightPipe(-1, 0, len);
+                    drawStraightPipe(0, 1, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.T_RIGHT:
+                    drawStraightPipe(0, 1, len);
+                    drawStraightPipe(0, -1, len);
+                    drawStraightPipe(1, 0, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.T_BOTTOM:
+                    drawStraightPipe(1, 0, len);
+                    drawStraightPipe(-1, 0, len);
+                    drawStraightPipe(0, -1, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.T_LEFT:
+                    drawStraightPipe(0, 1, len);
+                    drawStraightPipe(0, -1, len);
+                    drawStraightPipe(-1, 0, len);
+                    drawJoint();
+                    break;
+
+                case PIPE_TYPES.CROSS:
+                    drawStraightPipe(1, 0, len);
+                    drawStraightPipe(-1, 0, len);
+                    drawStraightPipe(0, 1, len);
+                    drawStraightPipe(0, -1, len);
+                    drawJoint();
+                    break;
+            }
+
+            if (connected) {
+                ctx.shadowColor = theme.flowGlow;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(0, 0, pipeWidth/2, 0, Math.PI * 2);
+                ctx.strokeStyle = theme.flow;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function darkenColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max((num >> 16) - amt, 0);
+            const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
+            const B = Math.max((num & 0x0000FF) - amt, 0);
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
+
+        function drawParticles(theme) {
+            for (const p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 50;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function animate(time) {
+            if (time - lastTime > 33) {
+                lastTime = time;
+                flowOffset += flowSpeed;
+                if (flowOffset > 40) flowOffset = 0;
+                render();
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function calculateStars() {
+            const level = LEVELS[currentLevel - 1];
+            const ratio = moves / level.optimalMoves;
+            
+            if (ratio <= 1.5) return 3;
+            if (ratio <= 2.5) return 2;
+            return 1;
+        }
+
+        function showWinMessage() {
+            const message = document.getElementById('winMessage');
+            const text = document.getElementById('winText');
+            const starsResult = document.getElementById('starsResult');
+            const level = LEVELS[currentLevel - 1];
+
+            const stars = calculateStars();
+            const bonus = stars * 50 + Math.max(100 - moves * 2, 10);
+            score += bonus;
+            document.getElementById('score').textContent = score;
+
+            starsResult.textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+
+            text.innerHTML = `
+                主題：${THEMES[level.theme].name} ${THEMES[level.theme].icon}<br>
+                移動次數：${moves}（最佳：${level.optimalMoves}）<br>
+                獲得積分：+${bonus}<br>
+                ${getRewardEmoji(stars)}
+            `;
+
+            message.classList.add('show');
+
+            if (currentLevel < LEVELS.length && currentLevel >= unlockedLevels) {
+                unlockedLevels = currentLevel + 1;
+            }
+
+            addToInventory(stars);
+            playSound('win');
+        }
+
+        function getRewardEmoji(stars) {
+            if (stars === 3) return '🏆 完美通關！';
+            if (stars === 2) return '⭐ 表現不錯！';
+            return '💪 繼續努力！';
+        }
+
+        function addToInventory(stars) {
+            if (stars >= 2) {
+                inventory.hint++;
+                inventory.undo++;
+            }
+            if (stars === 3) {
+                inventory.hint++;
+            }
+            updateInventoryUI();
+        }
+
+        function updateInventoryUI() {
+            const slots = [
+                { id: 'slot1', item: 'hint', icon: '💡', name: '提示' },
+                { id: 'slot2', item: 'undo', icon: '↩️', name: '撤銷' },
+                { id: 'slot3', item: 'pause', icon: '⏸️', name: '暫停' },
+                { id: 'slot4', item: 'random', icon: '🎲', name: '隨機' }
+            ];
+
+            slots.forEach(slot => {
+                const el = document.getElementById(slot.id);
+                const count = inventory[slot.item];
+                if (count > 0) {
+                    el.innerHTML = slot.icon + `<span class="count">${count}</span>`;
+                    el.classList.remove('empty');
+                    el.title = `${slot.name} x${count}`;
+                } else {
+                    el.innerHTML = '';
+                    el.classList.add('empty');
+                    el.title = slot.name;
+                }
+            });
+        }
+
+        function useHint() {
+            if (inventory.hint <= 0 && hintsUsed >= 3) return;
+            
+            const level = LEVELS[currentLevel - 1];
+            const gridSize = level.gridSize;
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (!grid[y][x].connected && grid[y][x].isPath) {
+                        const cx = x * CELL_SIZE + CELL_SIZE / 2;
+                        const cy = y * CELL_SIZE + CELL_SIZE / 2;
+                        
+                        for (let i = 0; i < 20; i++) {
+                            particles.push({
+                                x: cx,
+                                y: cy,
+                                vx: (Math.random() - 0.5) * 5,
+                                vy: (Math.random() - 0.5) * 5,
+                                life: 40,
+                                size: 4,
+                                color: '#fff'
+                            });
+                        }
+                        
+                        render();
+                        
+                        if (inventory.hint > 0) {
+                            inventory.hint--;
+                            updateInventoryUI();
+                        } else {
+                            hintsUsed++;
+                            document.getElementById('hintBtn').disabled = hintsUsed >= 3;
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        function openInventory() {
+            document.getElementById('winMessage').classList.remove('show');
+        }
+
+        function resetWinState() {
+            isWinning = false;
+            if (winTimeout) {
+                clearTimeout(winTimeout);
+                winTimeout = null;
+            }
+        }
+
+        function nextLevel() {
+            document.getElementById('winMessage').classList.remove('show');
+            resetWinState();
+            if (currentLevel < LEVELS.length) {
+                currentLevel++;
+                moves = 0;
+                hintsUsed = 0;
+                document.getElementById('level').textContent = currentLevel;
+                document.getElementById('moves').textContent = moves;
+                document.getElementById('hintBtn').disabled = false;
+                document.getElementById('undoBtn').disabled = true;
+
+                const level = LEVELS[currentLevel - 1];
+                currentTheme = level.theme;
+                document.getElementById('themeLabel').textContent = THEMES[level.theme].name;
+                document.getElementById('themeLabel').className = 'theme-label ' + level.theme;
+
+                initGrid();
+                render();
+                updateLevelButtons();
+                updateStarsDisplay(0);
+            }
+        }
+
+        function retryLevel() {
+            document.getElementById('winMessage').classList.remove('show');
+            resetWinState();
+            moves = 0;
+            hintsUsed = 0;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('hintBtn').disabled = false;
+            document.getElementById('undoBtn').disabled = true;
+            initGrid();
+            render();
+            updateStarsDisplay(0);
+        }
+
+        function selectLevel(level) {
+            if (level > unlockedLevels) return;
+            resetWinState();
+            currentLevel = level;
+            moves = 0;
+            hintsUsed = 0;
+            document.getElementById('level').textContent = currentLevel;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('hintBtn').disabled = false;
+            document.getElementById('undoBtn').disabled = true;
+
+            const levelData = LEVELS[currentLevel - 1];
+            currentTheme = levelData.theme;
+            document.getElementById('themeLabel').textContent = THEMES[levelData.theme].name;
+            document.getElementById('themeLabel').className = 'theme-label ' + levelData.theme;
+
+            resizeCanvas();
+            initGrid();
+            render();
+            updateLevelButtons();
+            updateStarsDisplay(0);
+        }
+
+        function updateStarsDisplay(stars) {
+            for (let i = 1; i <= 3; i++) {
+                const star = document.getElementById('star' + i);
+                if (i <= stars) {
+                    star.classList.add('earned');
+                } else {
+                    star.classList.remove('earned');
+                }
+            }
+        }
+
+        function updateLevelButtons() {
+            const container = document.getElementById('levelSelect');
+            container.innerHTML = '';
+
+            const maxShow = Math.min(10, LEVELS.length);
+            for (let i = 1; i <= maxShow; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn ' + (i % 3 === 1 ? 'electricity' : i % 3 === 2 ? 'water' : 'gas');
+                btn.textContent = i;
+
+                if (i > unlockedLevels) {
+                    btn.classList.add('locked');
+                    btn.textContent = '🔒';
+                } else {
+                    if (i === currentLevel) {
+                        btn.classList.add('active');
+                    }
+                    btn.onclick = () => selectLevel(i);
+                }
+
+                container.appendChild(btn);
+            }
+        }
+
+        function playSound(type) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                switch (type) {
+                    case 'rotate':
+                        oscillator.frequency.value = 500;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                        oscillator.start();
+                        oscillator.stop(audioCtx.currentTime + 0.1);
+                        break;
+                    case 'win':
+                        oscillator.frequency.value = 523;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        oscillator.start();
+                        
+                        setTimeout(() => oscillator.frequency.value = 659, 100);
+                        setTimeout(() => oscillator.frequency.value = 784, 200);
+                        setTimeout(() => oscillator.frequency.value = 1047, 300);
+                        
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                        oscillator.stop(audioCtx.currentTime + 0.5);
+                        break;
+                }
+            } catch (e) {}
+        }
+
+        function showTutorial() {
+            if (!hasShownTutorial) {
+                document.getElementById('tutorialOverlay').classList.add('show');
+                hasShownTutorial = true;
+            }
+        }
+
+        function closeTutorial() {
+            document.getElementById('tutorialOverlay').classList.remove('show');
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            initGrid();
+            render();
+            updateLevelButtons();
+            updateInventoryUI();
+            
+            setTimeout(() => {
+                showTutorial();
+            }, 500);
+            
+            animate(0);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        updateLevelButtons();
+        document.getElementById('undoBtn').disabled = true;
+    </script>
+</body>
+</html>
