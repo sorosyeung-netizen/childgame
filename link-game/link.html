@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水果連連看</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <button class="home-btn" onclick="location.href='../index.html'">🏠</button>
+        
+        <header>
+            <h1>🍎 水果連連看 🍊</h1>
+            <div class="level-display">
+                <span id="level-text">關卡 1</span>
+                <div class="level-progress">
+                    <div class="level-progress-bar" id="level-progress-bar"></div>
+                </div>
+            </div>
+            <div class="score-board">
+                <span id="score-text">分數: 0</span>
+                <span id="combo-text">連擊: x1</span>
+                <span id="timer-text">時間: 120s</span>
+                <span id="total-score-text">總分: 0</span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="game-board" id="game-board"></div>
+            
+            <div class="items-area">
+                <button id="hint-btn" class="item-btn hint-btn">💡 提示 (<span id="hint-count">3</span>)</button>
+                <button id="shuffle-btn" class="item-btn shuffle-btn">🔀 重排 (<span id="shuffle-count">3</span>)</button>
+                <button id="bomb-btn" class="item-btn bomb-btn">💣 炸彈 (<span id="bomb-count">1</span>)</button>
+                <button id="freeze-btn" class="item-btn freeze-btn">❄️ 冰凍 (<span id="freeze-count">1</span>)</button>
+                <button id="magic-btn" class="item-btn magic-btn">🔮 魔法 (<span id="magic-count">1</span>)</button>
+            </div>
+            
+            <div class="feedback-area" id="feedback-area"></div>
+            
+            <div class="achievement-popup" id="achievement-popup"></div>
+        </main>
+        
+        <footer>
+            <button id="achievement-btn" class="achievement-btn">🏆 成就</button>
+            <button id="restart-btn">重新開始</button>
+        </footer>
+    </div>
+    
+    <div id="game-over-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2 id="result-title">遊戲結束！</h2>
+            <p id="final-score">最終分數: 0</p>
+            <p id="level-reached">到達關卡: 1</p>
+            <div class="stars" id="stars"></div>
+            <div class="new-achievements" id="new-achievements"></div>
+            <div class="overlay-buttons">
+                <button id="play-again-btn" class="play-btn">再玩一次</button>
+                <button id="next-level-btn" class="next-btn" style="display:none;">下一關</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="achievement-overlay" class="overlay">
+        <div class="overlay-content achievement-panel">
+            <h2>🏆 成就列表</h2>
+            <div class="achievement-list" id="achievement-list"></div>
+            <button id="close-achievement-btn" class="close-btn">關閉</button>
+        </div>
+    </div>
+    
+    <audio id="bgm" loop></audio>
+    
+    <script src="script.js"></script>
+</body>
+</html>
