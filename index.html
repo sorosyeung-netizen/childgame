@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小朋友益智遊戲網</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Noto Sans TC', sans-serif;
+            background: url('back2.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .game-grid {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            width: 350px;
+            height: 280px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .game-card.mario-bg {
+            background-image: url('m9.png');
+        }
+
+        .game-card.marvel-bg {
+            background-image: url('marvel-math-game/images/back.png');
+        }
+
+        .game-card.link-bg {
+            background-image: url('link-game/images/back3.png');
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.3);
+        }
+
+        .play-btn {
+            display: inline-block;
+            padding: 12px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        footer {
+            margin-top: 50px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 小朋友益智遊戲網 🎮</h1>
+        <p class="subtitle">快樂學習，快樂成長！</p>
+    </header>
+
+    <main class="game-grid">
+        <div class="game-card mario-bg" onclick="location.href='mario.html'">
+            <span class="play-btn">開始遊戲 ▶</span>
+        </div>
+
+        <div class="game-card marvel-bg" onclick="location.href='marvel-math-game/marvel.html'">
+            <span class="play-btn">開始遊戲 ▶</span>
+        </div>
+
+        <div class="game-card link-bg" onclick="location.href='link-game/link.html'">
+            <span class="play-btn">開始遊戲 ▶</span>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 小朋友益智遊戲網</p>
+    </footer>
+</body>
+</html>
